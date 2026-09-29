@@ -22,6 +22,18 @@ const providers = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="하나의 정적 Astro 페이지, 서로 다른 일곱 공급자, 여덟 개의 살아 있는 컴포넌트." />
     <title>Isopod — 한 페이지, 여러 세계</title>
+    <script is:inline>
+      (() => {
+        const valid = value => /^https?:\/\/[^\s]+$/i.test(value || '');
+        const params = new URLSearchParams(location.search);
+        const config = JSON.parse(localStorage.getItem('isopod.provider-urls') || '{}');
+        for (const id of ['react', 'svelte', 'rsc', 'svelte-ssr', 'hono', 'next', 'blazor', 'phoenix']) {
+          const value = params.get(id);
+          if (valid(value)) config[id] = value.replace(/\/$/, '');
+        }
+        window.isopodProviderUrls = config;
+      })();
+    </script>
     <script is:inline type="module" src={`${assetBase}/remote-island.js`}></script>
   </head>
   <body>
@@ -40,11 +52,30 @@ const providers = [
           </fieldset>
         </div>
       </section>
+      <details class="connection-panel">
+        <summary>공급자 주소 바꾸기 <span>터널 URL을 입력하면 이 페이지에서 즉시 다시 연결합니다 ↗</span></summary>
+        <form data-provider-config>
+          <p class="config-help">Cloudflare Tunnel, portal-tunnel, VPS 등 브라우저에서 열리는 HTTPS 주소를 입력하세요. 입력값은 이 브라우저에만 저장됩니다.</p>
+          <div class="config-grid">
+            {providers.map(provider => (
+              <label><span>{provider.label}</span><input name={provider.id} data-provider-url={provider.id} placeholder={`https://... (${provider.port})`} /></label>
+            ))}
+          </div>
+          <div class="config-actions">
+            <button type="submit">이 페이지에 적용</button>
+            <button type="button" data-copy-gh>GitHub 명령 복사</button>
+            <button type="button" data-copy-cloudflare>Cloudflare 명령 복사</button>
+            <button type="button" data-clear-provider>초기화</button>
+          </div>
+          <textarea data-command-output readonly aria-label="복사할 명령"></textarea>
+          <p data-config-status role="status"></p>
+        </form>
+      </details>
       <section class="collection" aria-label="컴포넌트 정원">
         {providers.map((provider, index) => (
           <section class="island-card" data-provider={provider.id} aria-label={provider.label}>
             <header class="card-label"><span>{String(index + 1).padStart(2, '0')}</span><span>{provider.kind}</span></header>
-            <RemoteIsland src={`${providerUrl(provider.url, provider.port)}/${provider.entry || 'remote.js'}`} />
+            <RemoteIsland provider={provider.id} entry={provider.entry} src={`${providerUrl(provider.url, provider.port)}/${provider.entry || 'remote.js'}`} />
             <footer class="card-footer"><span>{provider.url || `:${provider.port}`}</span><button type="button" data-toggle-island>연결 해제</button></footer>
           </section>
         ))}

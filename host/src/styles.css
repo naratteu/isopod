@@ -21,6 +21,21 @@ h1 em { font-style: normal; color: var(--accent); }
 .themes legend { font-size: 10px; padding: 0 8px; color: var(--muted); }
 .themes label { font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .themes input { accent-color: var(--accent); }
+.connection-panel { border: 1px solid var(--line); border-radius: var(--radius); margin: 0 0 24px; background: var(--card); }
+.connection-panel summary { cursor: pointer; padding: 18px 22px; font-size: 13px; font-weight: 600; }
+.connection-panel summary span { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 10px; }
+.connection-panel form { border-top: 1px solid var(--line); padding: 20px 22px 22px; }
+.config-help { color: var(--muted); font-size: 12px; line-height: 1.7; margin: 0 0 16px; }
+.config-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.config-grid label { display: grid; gap: 6px; color: var(--muted); font-size: 10px; }
+.config-grid input, .config-actions button, .connection-panel textarea { border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink); padding: 9px 10px; font-size: 11px; }
+.config-grid input { min-width: 0; }
+.config-grid input::placeholder { color: var(--muted); opacity: .7; }
+.config-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.config-actions button { cursor: pointer; }
+.config-actions button:first-child { border-color: var(--accent); background: var(--accent); color: var(--button-ink); }
+.connection-panel textarea { display: block; width: 100%; min-height: 74px; margin-top: 12px; resize: vertical; font-family: ui-monospace, monospace; }
+.connection-panel [role="status"] { color: var(--accent); font-size: 11px; margin: 8px 0 0; }
 .collection { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 .island-card { padding: 22px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); display: flex; flex-direction: column; min-width: 0; }
 .card-label { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); margin-bottom: 28px; font-size: 10px; }
@@ -51,6 +66,8 @@ body:has(#theme-paper:checked) .collection { gap: 0; }
   .intro { padding-top: 40px; }
   .intro-bottom { flex-direction: column; align-items: start; }
   .collection { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+  .connection-panel summary span { display: block; margin: 6px 0 0; }
   .themes { gap: 12px; }
   .note { flex-direction: column; gap: 12px; }
 }

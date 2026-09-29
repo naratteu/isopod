@@ -33,7 +33,9 @@ class RemoteIsland extends HTMLElement {
     this.querySelector('[data-root]').replaceWith(root);
     this.setStatus('공급자에 연결하는 중…', 'loading');
     try {
-      const url = new URL(this.dataset.src, location.href);
+      const configured = window.isopodProviderUrls?.[this.dataset.provider];
+      const raw = configured ? `${configured}/${this.dataset.entry || 'remote.js'}` : this.dataset.src;
+      const url = new URL(raw.replace(/([^:]\/)\/+/g, '$1'), location.href);
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Invalid module URL');
       const provider = await import(url.href);
       controller.signal.throwIfAborted();
@@ -51,6 +53,43 @@ class RemoteIsland extends HTMLElement {
   }
 }
 customElements.define('remote-island', RemoteIsland);
+
+const providerUrls = () => window.isopodProviderUrls ||= {};
+const ids = ['react', 'svelte', 'rsc', 'svelte-ssr', 'hono', 'next', 'blazor', 'phoenix'];
+const fields = [...document.querySelectorAll('[data-provider-url]')];
+fields.forEach(field => { field.value = providerUrls()[field.dataset.providerUrl] || ''; });
+
+const commandText = (kind) => {
+  const values = Object.fromEntries(fields.map(field => [field.dataset.providerUrl, field.value.trim().replace(/\/$/, '')]));
+  if (kind === 'cloudflare') return ids.map((id, index) => `cloudflared tunnel --url http://localhost:${[5101,5102,5105,5104,5103,5105,5106,5107][index]} # ${id}`).join('\n');
+  return ids.filter(id => values[id]).map(id => `gh variable set PUBLIC_PROVIDER_${id.replaceAll('-', '_').toUpperCase()}_URL --repo naratteu/isopod --body '${values[id].replaceAll("'", "'\\''")}'`).join('\n') + '\ngh workflow run pages.yml --repo naratteu/isopod';
+};
+const output = document.querySelector('[data-command-output]');
+const status = document.querySelector('[data-config-status]');
+document.querySelector('[data-provider-config]')?.addEventListener('submit', event => {
+  event.preventDefault();
+  const values = Object.fromEntries(fields.filter(field => field.value.trim()).map(field => [field.dataset.providerUrl, field.value.trim().replace(/\/$/, '')]));
+  if (Object.values(values).some(value => !/^https?:\/\/[^\s]+$/i.test(value))) {
+    status.textContent = '주소는 http:// 또는 https://로 시작해야 합니다.';
+    return;
+  }
+  localStorage.setItem('isopod.provider-urls', JSON.stringify(values));
+  location.reload();
+});
+document.querySelector('[data-copy-gh]')?.addEventListener('click', async () => {
+  output.value = commandText('gh');
+  await navigator.clipboard.writeText(output.value);
+  status.textContent = 'GitHub 명령을 클립보드에 복사했습니다.';
+});
+document.querySelector('[data-copy-cloudflare]')?.addEventListener('click', async () => {
+  output.value = commandText('cloudflare');
+  await navigator.clipboard.writeText(output.value);
+  status.textContent = 'Cloudflare 명령을 클립보드에 복사했습니다.';
+});
+document.querySelector('[data-clear-provider]')?.addEventListener('click', () => {
+  localStorage.removeItem('isopod.provider-urls');
+  location.href = location.pathname;
+});
 
 document.addEventListener('click', event => {
   const button = event.target.closest('[data-toggle-island]');
