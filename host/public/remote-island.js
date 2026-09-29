@@ -65,6 +65,7 @@ const commandText = (kind) => {
 };
 const output = document.querySelector('[data-command-output]');
 const status = document.querySelector('[data-config-status]');
+const quickstartStatus = document.querySelector('[data-quickstart-status]');
 document.querySelector('[data-provider-config]')?.addEventListener('submit', event => {
   event.preventDefault();
   const values = Object.fromEntries(fields.filter(field => field.value.trim()).map(field => [field.dataset.providerUrl, field.value.trim().replace(/\/$/, '')]));
@@ -80,7 +81,10 @@ const copyCommand = async kind => {
   await navigator.clipboard.writeText(output.value);
   status.textContent = '명령을 클립보드에 복사했습니다.';
 };
-document.querySelector('[data-copy-local]')?.addEventListener('click', () => copyCommand('local'));
+document.querySelector('[data-copy-local]')?.addEventListener('click', async () => {
+  await navigator.clipboard.writeText(commandText('local'));
+  if (quickstartStatus) quickstartStatus.textContent = '복사했습니다.';
+});
 document.querySelector('[data-copy-cloudflare]')?.addEventListener('click', async () => {
   await copyCommand('cloudflare');
 });

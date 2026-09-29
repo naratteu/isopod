@@ -21,6 +21,12 @@ h1 em { font-style: normal; color: var(--accent); }
 .themes legend { font-size: 10px; padding: 0 8px; color: var(--muted); }
 .themes label { font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .themes input { accent-color: var(--accent); }
+.quickstart { display: grid; grid-template-columns: 1fr auto; gap: 12px 22px; align-items: center; margin: 0 0 24px; padding: 22px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--card); }
+.quickstart h2 { margin: 3px 0 6px; font-size: 20px; }
+.quickstart p { margin: 0; color: var(--muted); font-size: 12px; }
+.quickstart code { grid-column: 1 / -1; overflow: auto; padding: 13px; border-radius: 8px; background: var(--ink); color: var(--button-ink); font: 11px/1.5 ui-monospace, monospace; }
+.quickstart button { border: 1px solid var(--accent); border-radius: 8px; background: var(--accent); color: var(--button-ink); padding: 9px 12px; cursor: pointer; font-size: 11px; }
+.quickstart [role="status"] { color: var(--accent); font-size: 11px; }
 .connection-panel { border: 1px solid var(--line); border-radius: var(--radius); margin: 0 0 24px; background: var(--card); }
 .connection-panel summary { cursor: pointer; padding: 18px 22px; font-size: 13px; font-weight: 600; }
 .connection-panel summary span { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 10px; }
@@ -65,6 +71,8 @@ body:has(#theme-paper:checked) .collection { gap: 0; }
   .masthead > span { font-size: 8px; max-width: 130px; text-align: right; line-height: 1.8; }
   .intro { padding-top: 40px; }
   .intro-bottom { flex-direction: column; align-items: start; }
+  .quickstart { grid-template-columns: 1fr; }
+  .quickstart code { grid-column: auto; }
   .collection { grid-template-columns: 1fr; }
   .config-grid { grid-template-columns: 1fr; }
   .connection-panel summary span { display: block; margin: 6px 0 0; }
