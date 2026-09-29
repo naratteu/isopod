@@ -1,0 +1,33 @@
+@implements IDisposable
+@inject Microsoft.Extensions.Logging.ILogger<Counter> Logger
+
+<article>
+    <h3>Blazor Server</h3><p>C#의 상태와 이벤트. SignalR이 화면을 갱신합니다.</p>
+    <output aria-label="카운트">@count</output>
+    <button type="button" @onclick="Increment">+1</button>
+    <footer>서버 시각 <time>@time</time></footer>
+</article>
+
+@code {
+    private int count;
+    private readonly string instance = Guid.NewGuid().ToString("N")[..8];
+    private string time = DateTimeOffset.UtcNow.ToString("O");
+    private readonly CancellationTokenSource cancellation = new();
+    protected override void OnInitialized() => _ = Tick();
+    private void Increment()
+    {
+        count++;
+        Logger.LogInformation("counter.increment provider=blazor instance={Instance} count={Count}", instance, count);
+    }
+    private async Task Tick()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellation.Token))
+                await InvokeAsync(() => { time = DateTimeOffset.UtcNow.ToString("O"); StateHasChanged(); });
+        }
+        catch (OperationCanceledException) { }
+    }
+    public void Dispose() { cancellation.Cancel(); cancellation.Dispose(); }
+}

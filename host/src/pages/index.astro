@@ -1,0 +1,57 @@
+---
+import RemoteIsland from '../components/RemoteIsland.astro';
+import '../styles.css';
+const providerHost = import.meta.env.PUBLIC_PROVIDER_HOST || 'localhost';
+const assetBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+const providerUrl = (specific, port) => specific || `http://${providerHost}:${port}`;
+const providers = [
+  { id: 'react', label: 'React', kind: 'CLIENT', port: 5101, url: import.meta.env.PUBLIC_PROVIDER_REACT_URL },
+  { id: 'svelte', label: 'Svelte', kind: 'CLIENT', port: 5102, url: import.meta.env.PUBLIC_PROVIDER_SVELTE_URL },
+  { id: 'rsc', label: 'React Server Component', kind: 'SERVER · NEXT', port: 5105, url: import.meta.env.PUBLIC_PROVIDER_RSC_URL },
+  { id: 'svelte-ssr', label: 'Svelte SSR', kind: 'SERVER · HTML', port: 5104, url: import.meta.env.PUBLIC_PROVIDER_SVELTE_SSR_URL },
+  { id: 'hono', label: 'Hono', kind: 'SERVER · HTML', port: 5103, url: import.meta.env.PUBLIC_PROVIDER_HONO_URL },
+  { id: 'next', label: 'Next.js', kind: 'REMOTE CLIENT', port: 5105, url: import.meta.env.PUBLIC_PROVIDER_NEXT_URL, entry: 'client.js' },
+  { id: 'blazor', label: 'Blazor Server', kind: 'SERVER · C#', port: 5106, url: import.meta.env.PUBLIC_PROVIDER_BLAZOR_URL },
+  { id: 'phoenix', label: 'Phoenix LiveView', kind: 'SERVER · ELIXIR', port: 5107, url: import.meta.env.PUBLIC_PROVIDER_PHOENIX_URL },
+];
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="하나의 정적 Astro 페이지, 서로 다른 일곱 공급자, 여덟 개의 살아 있는 컴포넌트." />
+    <title>Isopod — 한 페이지, 여러 세계</title>
+    <script is:inline type="module" src={`${assetBase}/remote-island.js`}></script>
+  </head>
+  <body>
+    <header class="masthead"><a href="/" aria-label="Isopod 홈">◉ ISOPOD</a><span>MICROFRONTEND FIELD NOTES / 001</span></header>
+    <main>
+      <section class="intro">
+        <p class="eyebrow">INDEPENDENT INSIDE. TOGETHER OUTSIDE.</p>
+        <h1>한 페이지,<br /><em>여러 세계.</em></h1>
+        <div class="intro-bottom">
+          <p>각자의 언어로 움직이고, 하나의 디자인으로 만납니다.<br />일곱 공급자와 여덟 컴포넌트. 이 페이지는 정적입니다.</p>
+          <fieldset class="themes">
+            <legend>같은 HTML, 다른 CSS</legend>
+            <label><input type="radio" name="theme" id="theme-garden" checked /> Garden</label>
+            <label><input type="radio" name="theme" id="theme-paper" /> Paper</label>
+            <label><input type="radio" name="theme" id="theme-night" /> Night</label>
+          </fieldset>
+        </div>
+      </section>
+      <section class="collection" aria-label="컴포넌트 정원">
+        {providers.map((provider, index) => (
+          <section class="island-card" data-provider={provider.id} aria-label={provider.label}>
+            <header class="card-label"><span>{String(index + 1).padStart(2, '0')}</span><span>{provider.kind}</span></header>
+            <RemoteIsland src={`${providerUrl(provider.url, provider.port)}/${provider.entry || 'remote.js'}`} />
+            <footer class="card-footer"><span>{provider.url || `:${provider.port}`}</span><button type="button" data-toggle-island>연결 해제</button></footer>
+          </section>
+        ))}
+      </section>
+      <aside class="note"><span>직접 해보세요 ↗</span><p>숫자를 올리고 테마를 바꿔 보세요. 모습이 바뀌어도 상태와 서버 시각은 이어집니다. 연결을 해제하면 해당 컴포넌트만 멈춥니다.</p></aside>
+    </main>
+    <footer class="page-footer"><span>ASTRO + NATIVE CSS</span><span>서로 다른 내부. 함께 쓰는 웹.</span></footer>
+    <noscript>컴포넌트 공급자에 연결하려면 JavaScript를 활성화해 주세요.</noscript>
+  </body>
+</html>

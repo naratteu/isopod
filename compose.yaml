@@ -1,0 +1,59 @@
+name: isopod
+x-node: &node
+  init: true
+  environment:
+    HOST_ORIGIN: ${HOST_ORIGIN:-http://localhost:4321}
+  healthcheck:
+    test: [CMD, node, -e, "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+    interval: 5s
+    timeout: 3s
+    retries: 12
+
+services:
+  host:
+    build:
+      context: .
+      target: host
+      args:
+        PUBLIC_PROVIDER_HOST: ${PUBLIC_PROVIDER_HOST:-localhost}
+        PUBLIC_PROVIDER_REACT_URL: ${PUBLIC_PROVIDER_REACT_URL:-}
+        PUBLIC_PROVIDER_SVELTE_URL: ${PUBLIC_PROVIDER_SVELTE_URL:-}
+        PUBLIC_PROVIDER_RSC_URL: ${PUBLIC_PROVIDER_RSC_URL:-}
+        PUBLIC_PROVIDER_SVELTE_SSR_URL: ${PUBLIC_PROVIDER_SVELTE_SSR_URL:-}
+        PUBLIC_PROVIDER_HONO_URL: ${PUBLIC_PROVIDER_HONO_URL:-}
+        PUBLIC_PROVIDER_NEXT_URL: ${PUBLIC_PROVIDER_NEXT_URL:-}
+        PUBLIC_PROVIDER_BLAZOR_URL: ${PUBLIC_PROVIDER_BLAZOR_URL:-}
+        PUBLIC_PROVIDER_PHOENIX_URL: ${PUBLIC_PROVIDER_PHOENIX_URL:-}
+    ports: ["127.0.0.1:4321:80"]
+  react:
+    <<: *node
+    build: { context: ., target: provider, args: { PROVIDER: react } }
+    ports: ["127.0.0.1:5101:3000"]
+  svelte:
+    <<: *node
+    build: { context: ., target: provider, args: { PROVIDER: svelte } }
+    ports: ["127.0.0.1:5102:3000"]
+  hono:
+    <<: *node
+    build: { context: ., target: provider, args: { PROVIDER: hono } }
+    ports: ["127.0.0.1:5103:3000"]
+  svelte-ssr:
+    <<: *node
+    build: { context: ., target: provider, args: { PROVIDER: svelte-ssr } }
+    ports: ["127.0.0.1:5104:3000"]
+  next:
+    <<: *node
+    build: { context: ., target: provider, args: { PROVIDER: next } }
+    ports: ["127.0.0.1:5105:3000"]
+  blazor:
+    build: { context: ., dockerfile: providers/blazor/Dockerfile }
+    environment:
+      HOST_ORIGIN: ${HOST_ORIGIN:-http://localhost:4321}
+    ports: ["127.0.0.1:5106:8080"]
+  phoenix:
+    build: { context: ., dockerfile: providers/phoenix/Dockerfile }
+    environment:
+      HOST_ORIGIN: ${HOST_ORIGIN:-http://localhost:4321}
+      # Local demo only. Set a private key when deploying outside this machine.
+      SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE:-isopod-local-demo-only-change-this-before-deploying-0123456789abcdef0123456789abcdef}
+    ports: ["127.0.0.1:5107:4000"]

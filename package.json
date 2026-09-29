@@ -1,0 +1,24 @@
+{
+  "name": "isopod",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs all && astro build --root host",
+    "build:host": "astro build --root host",
+    "dev": "astro dev --root host --host 0.0.0.0",
+    "test": "node tests/smoke.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.1",
+    "astro": "7.3.5",
+    "hono": "4.13.10",
+    "next": "16.3.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "svelte": "5.57.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "playwright": "1.63.0"
+  }
+}

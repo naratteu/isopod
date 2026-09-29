@@ -1,0 +1,53 @@
+name: Deploy Astro host to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.4.1
+          cache: npm
+      - run: npm ci
+      - name: Build static Astro host
+        env:
+          PUBLIC_SITE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          PUBLIC_BASE: /${{ github.event.repository.name }}
+          PUBLIC_PROVIDER_REACT_URL: ${{ vars.PUBLIC_PROVIDER_REACT_URL }}
+          PUBLIC_PROVIDER_SVELTE_URL: ${{ vars.PUBLIC_PROVIDER_SVELTE_URL }}
+          PUBLIC_PROVIDER_RSC_URL: ${{ vars.PUBLIC_PROVIDER_RSC_URL }}
+          PUBLIC_PROVIDER_SVELTE_SSR_URL: ${{ vars.PUBLIC_PROVIDER_SVELTE_SSR_URL }}
+          PUBLIC_PROVIDER_HONO_URL: ${{ vars.PUBLIC_PROVIDER_HONO_URL }}
+          PUBLIC_PROVIDER_NEXT_URL: ${{ vars.PUBLIC_PROVIDER_NEXT_URL }}
+          PUBLIC_PROVIDER_BLAZOR_URL: ${{ vars.PUBLIC_PROVIDER_BLAZOR_URL }}
+          PUBLIC_PROVIDER_PHOENIX_URL: ${{ vars.PUBLIC_PROVIDER_PHOENIX_URL }}
+        run: npm run build:host
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: host/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

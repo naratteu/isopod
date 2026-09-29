@@ -1,0 +1,8 @@
+---
+interface Props { src: string }
+const { src } = Astro.props;
+---
+<remote-island data-src={src}>
+  <p data-status role="status">공급자에 연결하는 중…</p>
+  <div data-root></div>
+</remote-island>
