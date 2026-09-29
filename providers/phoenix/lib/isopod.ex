@@ -82,7 +82,7 @@ end
 
 defmodule Isopod.Endpoint do
   use Phoenix.Endpoint, otp_app: :isopod
-  @session_options [store: :cookie, key: "_isopod_live", signing_salt: "isopod-session", same_site: "Lax"]
+  @session_options [store: :cookie, key: "_isopod_live", signing_salt: "isopod-session", same_site: "None", secure: true]
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]], longpoll: false
   plug Isopod.CORS
   plug Plug.Static, at: "/", from: :isopod, only: ["remote.js", "health"]
