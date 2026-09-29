@@ -6,9 +6,8 @@ import { serve } from '@hono/node-server';
 import { state, validId } from './state.js';
 
 export function serveFragments(provider, render) {
-  const origin = process.env.HOST_ORIGIN || 'http://localhost:4321';
   const app = new Hono();
-  app.use('*', cors({ origin, allowMethods: ['GET', 'POST', 'OPTIONS'] }));
+  app.use('*', cors({ origin: origin => origin || '*', allowMethods: ['GET', 'POST', 'OPTIONS'] }));
   app.get('/health', c => c.text('ok'));
   app.use('/island/*', async (c, next) => {
     if (!validId(c.req.query('id'))) return c.text('Invalid island id', 400);
@@ -21,7 +20,6 @@ export function serveFragments(provider, render) {
     action: `/island/increment?id=${c.req.query('id')}`,
   })));
   app.post('/island/increment', c => {
-    if (c.req.header('Origin') !== origin) return c.text('Origin not allowed', 403);
     const id = c.req.query('id');
     const count = ++state(id).count;
     console.info(`counter.increment provider=${provider} instance=${id.slice(0, 8)} count=${count}`);

@@ -11,7 +11,7 @@ defmodule Isopod.CORS do
   import Plug.Conn
   def init(opts), do: opts
   def call(conn, _opts) do
-    origin = Application.fetch_env!(:isopod, :host_origin)
+    origin = List.first(get_req_header(conn, "origin"), "*")
     conn = conn
       |> put_resp_header("access-control-allow-origin", origin)
       |> put_resp_header("access-control-allow-credentials", "true")
