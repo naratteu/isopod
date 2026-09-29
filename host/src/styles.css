@@ -27,6 +27,8 @@ h1 em { font-style: normal; color: var(--accent); }
 .quickstart code { grid-column: 1 / -1; overflow: auto; padding: 13px; border-radius: 8px; background: var(--ink); color: var(--button-ink); font: 11px/1.5 ui-monospace, monospace; }
 .quickstart button { border: 1px solid var(--accent); border-radius: 8px; background: var(--accent); color: var(--button-ink); padding: 9px 12px; cursor: pointer; font-size: 11px; }
 .quickstart [role="status"] { color: var(--accent); font-size: 11px; }
+.scope-note { margin: -10px 0 18px; color: var(--muted); font-size: 11px; }
+.scope-note code { color: var(--ink); }
 .connection-panel { border: 1px solid var(--line); border-radius: var(--radius); margin: 0 0 24px; background: var(--card); }
 .connection-panel summary { cursor: pointer; padding: 18px 22px; font-size: 13px; font-weight: 600; }
 .connection-panel summary span { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 10px; }

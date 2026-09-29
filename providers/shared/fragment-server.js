@@ -15,13 +15,13 @@ export function serveFragments(provider, render) {
     await next();
   });
   app.get('/island/view', async c => c.html(await render({
-    count: state(c.req.query('id')).count,
+    count: state(c.req.query('id'), c.req.query('scope')).count,
     time: new Date().toISOString(),
     action: `/island/increment?id=${c.req.query('id')}`,
   })));
   app.post('/island/increment', c => {
     const id = c.req.query('id');
-    const count = ++state(id).count;
+    const count = ++state(id, c.req.query('scope')).count;
     console.info(`counter.increment provider=${provider} instance=${id.slice(0, 8)} count=${count}`);
     return c.body(null, 204);
   });

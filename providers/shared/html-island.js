@@ -1,10 +1,12 @@
 // This adapter belongs to the providers. The Astro host never interprets their HTML/forms/SSE.
-export async function mountHTML(element, { origin, view, events, signal }) {
+export async function mountHTML(element, { origin, view, events, signal, scope = 'personal' }) {
   const id = crypto.randomUUID();
   const viewURL = new URL(view, origin);
   viewURL.searchParams.set('id', id);
+  viewURL.searchParams.set('scope', scope);
   const eventURL = new URL(events, origin);
   eventURL.searchParams.set('id', id);
+  eventURL.searchParams.set('scope', scope);
   let busy = false;
   let pending = false;
   const status = document.createElement('p');
@@ -33,6 +35,7 @@ export async function mountHTML(element, { origin, view, events, signal }) {
         }
         for (const form of article.querySelectorAll('form')) {
           const action = new URL(form.getAttribute('action'), origin);
+          action.searchParams.set('scope', scope);
           if (action.origin !== new URL(origin).origin) throw new Error('Invalid form origin');
           form.action = action.href;
         }

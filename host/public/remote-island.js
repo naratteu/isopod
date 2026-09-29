@@ -39,7 +39,10 @@ class RemoteIsland extends HTMLElement {
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Invalid module URL');
       const provider = await import(url.href);
       controller.signal.throwIfAborted();
-      const cleanup = await provider.mount(root, { signal: controller.signal });
+      const scope = window.isopodCounterScope === 'global' ? 'global' : 'personal';
+      this.dataset.counterScope = scope;
+      this.closest('.island-card')?.querySelector('[data-counter-label]')?.replaceChildren(scope === 'global' ? '전역' : '개인');
+      const cleanup = await provider.mount(root, { signal: controller.signal, scope });
       if (controller.signal.aborted) { await cleanup?.(); return; }
       if (typeof cleanup !== 'function') throw new Error('Provider must return a cleanup function');
       this.cleanup = cleanup;
