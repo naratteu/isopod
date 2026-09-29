@@ -60,9 +60,8 @@ const fields = [...document.querySelectorAll('[data-provider-url]')];
 fields.forEach(field => { field.value = providerUrls()[field.dataset.providerUrl] || ''; });
 
 const commandText = (kind) => {
-  const values = Object.fromEntries(fields.map(field => [field.dataset.providerUrl, field.value.trim().replace(/\/$/, '')]));
+  if (kind === 'local') return 'git clone https://github.com/naratteu/isopod.git && cd isopod && docker compose up --build -d';
   if (kind === 'cloudflare') return ids.map((id, index) => `cloudflared tunnel --url http://localhost:${[5101,5102,5105,5104,5103,5105,5106,5107][index]} # ${id}`).join('\n');
-  return ids.filter(id => values[id]).map(id => `gh variable set PUBLIC_PROVIDER_${id.replaceAll('-', '_').toUpperCase()}_URL --repo naratteu/isopod --body '${values[id].replaceAll("'", "'\\''")}'`).join('\n') + '\ngh workflow run pages.yml --repo naratteu/isopod';
 };
 const output = document.querySelector('[data-command-output]');
 const status = document.querySelector('[data-config-status]');
@@ -76,15 +75,14 @@ document.querySelector('[data-provider-config]')?.addEventListener('submit', eve
   localStorage.setItem('isopod.provider-urls', JSON.stringify(values));
   location.reload();
 });
-document.querySelector('[data-copy-gh]')?.addEventListener('click', async () => {
-  output.value = commandText('gh');
+const copyCommand = async kind => {
+  output.value = commandText(kind);
   await navigator.clipboard.writeText(output.value);
-  status.textContent = 'GitHub 명령을 클립보드에 복사했습니다.';
-});
+  status.textContent = '명령을 클립보드에 복사했습니다.';
+};
+document.querySelector('[data-copy-local]')?.addEventListener('click', () => copyCommand('local'));
 document.querySelector('[data-copy-cloudflare]')?.addEventListener('click', async () => {
-  output.value = commandText('cloudflare');
-  await navigator.clipboard.writeText(output.value);
-  status.textContent = 'Cloudflare 명령을 클립보드에 복사했습니다.';
+  await copyCommand('cloudflare');
 });
 document.querySelector('[data-clear-provider]')?.addEventListener('click', () => {
   localStorage.removeItem('isopod.provider-urls');

@@ -53,9 +53,13 @@ const providers = [
         </div>
       </section>
       <details class="connection-panel">
-        <summary>공급자 주소 바꾸기 <span>터널 URL을 입력하면 이 페이지에서 즉시 다시 연결합니다 ↗</span></summary>
+        <summary>방문자용 연결 시작하기 <span>명령을 복사해 로컬 또는 터널로 연결합니다 ↗</span></summary>
         <form data-provider-config>
-          <p class="config-help">Cloudflare Tunnel, portal-tunnel, VPS 등 브라우저에서 열리는 HTTPS 주소를 입력하세요. 입력값은 이 브라우저에만 저장됩니다.</p>
+          <p class="config-help">먼저 로컬 Compose를 실행하고, 다른 기기에서 보려면 Cloudflare Tunnel을 실행하세요. 생성된 주소를 아래에 붙여 넣으면 이 페이지가 즉시 다시 연결합니다.</p>
+          <div class="config-actions setup-actions">
+            <button type="button" data-copy-local>1. 로컬 실행 명령 복사</button>
+            <button type="button" data-copy-cloudflare>2. Cloudflare 명령 복사</button>
+          </div>
           <div class="config-grid">
             {providers.map(provider => (
               <label><span>{provider.label}</span><input name={provider.id} data-provider-url={provider.id} placeholder={`https://... (${provider.port})`} /></label>
@@ -63,8 +67,6 @@ const providers = [
           </div>
           <div class="config-actions">
             <button type="submit">이 페이지에 적용</button>
-            <button type="button" data-copy-gh>GitHub 명령 복사</button>
-            <button type="button" data-copy-cloudflare>Cloudflare 명령 복사</button>
             <button type="button" data-clear-provider>초기화</button>
           </div>
           <textarea data-command-output readonly aria-label="복사할 명령"></textarea>

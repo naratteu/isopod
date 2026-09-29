@@ -9,29 +9,25 @@ docker compose up --build -d
 
 처음에는 Node/.NET/Elixir 이미지와 패키지를 받습니다. 이후 `docker compose ps`와 `docker compose logs phoenix` 등으로 상태를 확인할 수 있습니다. 종료는 `docker compose down`입니다. 포트는 로컬 머신에만 바인딩합니다.
 
-## GitHub Pages + 원격 공급자
+## 방문자용 실행 순서
 
-GitHub Pages에는 정적 Astro 호스트만 올리고, 공급자 컨테이너는 브라우저가 접근할 수 있는 별도 주소에서 실행할 수 있습니다. 저장소의 Actions Variables에 다음 값을 완전한 URL로 등록하면 됩니다.
-
-```text
-PUBLIC_PROVIDER_REACT_URL=https://react.example.com
-PUBLIC_PROVIDER_SVELTE_URL=https://svelte.example.com
-PUBLIC_PROVIDER_RSC_URL=https://next.example.com
-PUBLIC_PROVIDER_SVELTE_SSR_URL=https://svelte-ssr.example.com
-PUBLIC_PROVIDER_HONO_URL=https://hono.example.com
-PUBLIC_PROVIDER_NEXT_URL=https://next.example.com
-PUBLIC_PROVIDER_BLAZOR_URL=https://blazor.example.com
-PUBLIC_PROVIDER_PHOENIX_URL=https://phoenix.example.com
-```
-
-`.github/workflows/pages.yml`가 `main` push 때 `host/dist`만 GitHub Pages에 배포합니다. 저장소 Settings → Pages → Source는 `GitHub Actions`로 선택합니다. 각 URL은 반드시 Pages를 방문하는 브라우저에서 직접 열 수 있어야 하며, HTTPS Pages에서 HTTP 공급자로 연결하면 혼합 콘텐츠 정책에 막힙니다. 로컬 공급자를 그대로 쓰려면 GitHub Pages가 그 컴퓨터의 `localhost`를 볼 수 없으므로 Cloudflare Tunnel·`gosuda/portal-tunnel`·Tailscale Funnel·역방향 프록시 같은 공개 HTTPS 주소가 필요합니다.
-
-### Cloudflare Tunnel로 바로 연결하기
-
-가장 단순한 실증은 공급자마다 Cloudflare Quick Tunnel을 하나씩 열고, 출력된 HTTPS 주소를 Actions Variables에 넣는 방식입니다. `cloudflared` 설치는 [Cloudflare 다운로드 문서](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)를 따릅니다.
+방문자는 저장소를 받은 뒤 Compose만 실행하면 로컬 데모를 볼 수 있습니다.
 
 ```sh
-# 공급자마다 별도 터미널에서 실행하고, 출력된 https://*.trycloudflare.com 주소를 복사합니다.
+git clone https://github.com/naratteu/isopod.git
+cd isopod
+docker compose up --build -d
+# http://localhost:4321
+```
+
+페이지의 `방문자용 연결 시작하기`에서 위 명령을 그대로 복사할 수도 있습니다. 컨테이너 로그는 `docker compose logs -f phoenix`처럼 확인합니다.
+
+### Cloudflare Tunnel로 연결하기
+
+다른 기기에서 GitHub Pages에 연결하려면 공급자 포트마다 터널을 열어야 합니다. `cloudflared` 설치는 [Cloudflare 다운로드 문서](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)를 따릅니다. 페이지의 `Cloudflare 명령 복사` 버튼으로 아래 명령을 복사할 수 있습니다.
+
+```sh
+# 공급자마다 별도 터미널에서 실행합니다.
 cloudflared tunnel --url http://localhost:5101 # React
 cloudflared tunnel --url http://localhost:5102 # Svelte
 cloudflared tunnel --url http://localhost:5103 # Hono
@@ -41,24 +37,9 @@ cloudflared tunnel --url http://localhost:5106 # Blazor
 cloudflared tunnel --url http://localhost:5107 # Phoenix
 ```
 
-각 주소를 `PUBLIC_PROVIDER_*_URL`에 넣고 GitHub Pages workflow를 다시 실행하면 됩니다. Quick Tunnel URL은 재시작할 때 바뀌므로 장기 데모에는 Cloudflare named tunnel이나 `gosuda/portal-tunnel` 같은 고정 주소 계층을 사용하세요. 둘은 이 프로젝트의 공급자 URL 계약을 만족하는 서로 다른 터널 선택지입니다.
+각 터널이 출력한 `https://*.trycloudflare.com` 주소를 페이지의 공급자 주소 칸에 붙여 넣고 `이 페이지에 적용`을 누르세요. 그러면 그 브라우저가 로컬호스트 대신 터널 주소로 즉시 연결합니다. `gosuda/portal-tunnel`, Tailscale Funnel, VPS reverse proxy도 공개 URL만 제공하면 같은 방식으로 사용할 수 있습니다.
 
-Compose에서 같은 주소를 사용하려면 `.env.example`을 `.env`로 복사하고 값을 채운 뒤 다음처럼 시작합니다.
-
-```sh
-cp .env.example .env
-# PUBLIC_PROVIDER_*_URL에는 공개 공급자 URL을 입력
-# HOST_ORIGIN에는 정확한 GitHub Pages origin을 입력
-docker compose up --build -d
-```
-
-`HOST_ORIGIN`은 경로를 제외한 scheme + host + port origin이어야 합니다. 프로젝트 페이지가 `https://naratteu.github.io/isopod`라면 브라우저의 `Origin` 헤더는 `https://naratteu.github.io`이므로 서버 설정도 다음처럼 지정합니다.
-
-```text
-HOST_ORIGIN=https://naratteu.github.io
-```
-
-공급자 주소에 경로 prefix를 쓰는 경우에는 URL의 경로만 공급자 reverse proxy가 처리하고 `HOST_ORIGIN`은 여전히 `https://naratteu.github.io`처럼 scheme + host + port만 지정합니다. 여러 호스트를 허용해야 하면 각 공급자 앞에 CORS-aware reverse proxy를 두는 편이 단일 `HOST_ORIGIN`보다 안전합니다.
+GitHub Pages는 방문자의 컴퓨터에서 `localhost`를 볼 수 없으므로, Pages에서 테스트할 때는 반드시 공개 HTTPS 주소를 입력해야 합니다. 공급자 서버의 CORS 허용 origin에는 `https://naratteu.github.io`를 설정하세요.
 
 ### Docker 이미지와 버전
 
