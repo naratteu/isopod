@@ -5,14 +5,14 @@ const providerHost = import.meta.env.PUBLIC_PROVIDER_HOST || 'localhost';
 const assetBase = import.meta.env.BASE_URL.replace(/\/$/, '');
 const providerUrl = (specific, port) => specific || `http://${providerHost}:${port}`;
 const providers = [
-  { id: 'react', label: 'React', kind: 'CLIENT', port: 5101, url: import.meta.env.PUBLIC_PROVIDER_REACT_URL },
-  { id: 'svelte', label: 'Svelte', kind: 'CLIENT', port: 5102, url: import.meta.env.PUBLIC_PROVIDER_SVELTE_URL },
-  { id: 'rsc', label: 'React Server Component', kind: 'SERVER · NEXT', port: 5105, url: import.meta.env.PUBLIC_PROVIDER_RSC_URL },
-  { id: 'svelte-ssr', label: 'Svelte SSR', kind: 'SERVER · HTML', port: 5104, url: import.meta.env.PUBLIC_PROVIDER_SVELTE_SSR_URL },
-  { id: 'hono', label: 'Hono', kind: 'SERVER · HTML', port: 5103, url: import.meta.env.PUBLIC_PROVIDER_HONO_URL },
-  { id: 'next', label: 'Next.js', kind: 'REMOTE CLIENT', port: 5105, url: import.meta.env.PUBLIC_PROVIDER_NEXT_URL, entry: 'client.js' },
-  { id: 'blazor', label: 'Blazor Server', kind: 'SERVER · C#', port: 5106, url: import.meta.env.PUBLIC_PROVIDER_BLAZOR_URL },
-  { id: 'phoenix', label: 'Phoenix LiveView', kind: 'SERVER · ELIXIR', port: 5107, url: import.meta.env.PUBLIC_PROVIDER_PHOENIX_URL },
+  { id: 'react', label: 'React', kind: 'CLIENT', scope: 'local', port: 5101, url: import.meta.env.PUBLIC_PROVIDER_REACT_URL },
+  { id: 'svelte', label: 'Svelte', kind: 'CLIENT', scope: 'local', port: 5102, url: import.meta.env.PUBLIC_PROVIDER_SVELTE_URL },
+  { id: 'rsc', label: 'React Server Component', kind: 'SERVER · NEXT', scope: 'local', port: 5105, url: import.meta.env.PUBLIC_PROVIDER_RSC_URL },
+  { id: 'svelte-ssr', label: 'Svelte SSR', kind: 'SERVER · HTML', scope: 'global', port: 5104, url: import.meta.env.PUBLIC_PROVIDER_SVELTE_SSR_URL },
+  { id: 'hono', label: 'Hono', kind: 'SERVER · HTML', scope: 'global', port: 5103, url: import.meta.env.PUBLIC_PROVIDER_HONO_URL },
+  { id: 'next', label: 'Next.js', kind: 'REMOTE CLIENT', scope: 'local', port: 5105, url: import.meta.env.PUBLIC_PROVIDER_NEXT_URL, entry: 'client.js' },
+  { id: 'blazor', label: 'Blazor Server', kind: 'SERVER · C#', scope: 'global', port: 5106, url: import.meta.env.PUBLIC_PROVIDER_BLAZOR_URL },
+  { id: 'phoenix', label: 'Phoenix LiveView', kind: 'SERVER · ELIXIR', scope: 'global', port: 5107, url: import.meta.env.PUBLIC_PROVIDER_PHOENIX_URL },
 ];
 ---
 <!doctype html>
@@ -31,7 +31,6 @@ const providers = [
           const value = params.get(id);
           if (valid(value)) config[id] = value.replace(/\/$/, '');
         }
-        window.isopodCounterScope = params.get('scope') === 'global' ? 'global' : 'personal';
         window.isopodProviderUrls = config;
       })();
     </script>
@@ -76,13 +75,13 @@ const providers = [
           <p data-config-status role="status"></p>
         </form>
       </details>
-      <p class="scope-note">서버 HTML 카운터 범위: <code>?scope=personal</code> (기본) · <code>?scope=global</code> (컨테이너 전역)</p>
+      <p class="scope-note"><b>LOCAL</b> 브라우저 상태 · <strong>GLOBAL</strong> 공급자 프로세스 상태</p>
       <section class="collection" aria-label="컴포넌트 정원">
         {providers.map((provider, index) => (
-          <section class="island-card" data-provider={provider.id} aria-label={provider.label}>
+          <section class:list={['island-card', provider.scope === 'global' && 'global-card']} data-provider={provider.id} data-scope={provider.scope} aria-label={provider.label}>
             <header class="card-label"><span>{String(index + 1).padStart(2, '0')}</span><span>{provider.kind}</span></header>
-            <RemoteIsland provider={provider.id} entry={provider.entry} src={`${providerUrl(provider.url, provider.port)}/${provider.entry || 'remote.js'}`} />
-            <footer class="card-footer"><span>{provider.url || `:${provider.port}`}</span><span data-counter-label>개인</span><button type="button" data-toggle-island>연결 해제</button></footer>
+            <RemoteIsland provider={provider.id} scope={provider.scope} entry={provider.entry} src={`${providerUrl(provider.url, provider.port)}/${provider.entry || 'remote.js'}`} />
+            <footer class="card-footer"><span>{provider.url || `:${provider.port}`}</span><span data-counter-label>{provider.scope === 'global' ? 'GLOBAL' : 'LOCAL'}</span><button type="button" data-toggle-island>연결 해제</button></footer>
           </section>
         ))}
       </section>

@@ -46,6 +46,8 @@ h1 em { font-style: normal; color: var(--accent); }
 .connection-panel [role="status"] { color: var(--accent); font-size: 11px; margin: 8px 0 0; }
 .collection { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 .island-card { padding: 22px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); display: flex; flex-direction: column; min-width: 0; }
+.island-card.global-card { background: color-mix(in srgb, var(--accent) 10%, var(--card)); border-color: var(--accent); box-shadow: inset 0 4px 0 var(--accent); }
+.global-card .card-label span:last-child, .global-card [data-counter-label] { color: var(--accent); font-weight: 700; }
 .card-label { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); margin-bottom: 28px; font-size: 10px; }
 remote-island { display: block; flex: 1; min-height: 246px; }
 remote-island [data-status]:empty, remote-island [role="status"]:empty { display: none; }

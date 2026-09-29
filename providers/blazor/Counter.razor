@@ -9,15 +9,14 @@
 </article>
 
 @code {
-    private int count;
+    private int count = GlobalCounter.Value;
     private readonly string instance = Guid.NewGuid().ToString("N")[..8];
     private string time = DateTimeOffset.UtcNow.ToString("O");
     private readonly CancellationTokenSource cancellation = new();
-    protected override void OnInitialized() => _ = Tick();
+    protected override void OnInitialized() { GlobalCounter.Changed += OnGlobalChanged; _ = Tick(); }
     private void Increment()
     {
-        count++;
-        Logger.LogInformation("counter.increment provider=blazor instance={Instance} count={Count}", instance, count);
+        GlobalCounter.Increment(instance, Logger);
     }
     private async Task Tick()
     {
@@ -29,5 +28,6 @@
         }
         catch (OperationCanceledException) { }
     }
-    public void Dispose() { cancellation.Cancel(); cancellation.Dispose(); }
+    private void OnGlobalChanged(int value) => _ = InvokeAsync(() => { count = value; StateHasChanged(); });
+    public void Dispose() { GlobalCounter.Changed -= OnGlobalChanged; cancellation.Cancel(); cancellation.Dispose(); }
 }

@@ -11,6 +11,7 @@ const sockets = [];
 page.on('pageerror', error => errors.push(error.message));
 page.on('websocket', socket => sockets.push(socket.url()));
 const names = ['react', 'svelte', 'rsc', 'svelte-ssr', 'hono', 'next', 'blazor', 'phoenix'];
+const globalNames = new Set(['svelte-ssr', 'hono', 'blazor', 'phoenix']);
 const base = process.env.HOST_URL || 'http://localhost:4321';
 const card = name => page.locator(`[data-provider="${name}"]`);
 const counts = Object.fromEntries(names.map(name => [name, 0]));
@@ -56,8 +57,9 @@ try {
   await second.goto(base);
   await eventually(async () => await second.locator('remote-island output').count() === 8, 'Second session renders');
   const secondCounts = await second.locator('remote-island output').allTextContents();
-  assert.equal(secondCounts[7], String(counts.phoenix), 'Phoenix state is shared by the process');
-  assert.deepEqual(secondCounts.slice(0, 7), Array(7).fill('0'));
+  for (const [index, name] of names.entries()) {
+    assert.equal(secondCounts[index], globalNames.has(name) ? String(counts[name]) : '0', `${name}: scope`);
+  }
   await second.close();
 
   // Each server-side increment must appear in its own container, correlated to an instance.
@@ -79,7 +81,7 @@ try {
     await card(name).locator('output').waitFor();
     if (name === 'phoenix') await card(name).locator('.phx-connected').waitFor();
     await card(name).getByRole('button', { name: '+1', exact: true }).click();
-    counts[name] = name === 'phoenix' ? counts[name] + 1 : 1;
+    counts[name] = globalNames.has(name) ? counts[name] + 1 : 1;
     await eventually(async () => (await card(name).locator('output').textContent()).trim() === String(counts[name]), `${name}: remount works`);
   }
 
