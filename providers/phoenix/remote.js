@@ -24,6 +24,8 @@ export async function mount(element, { signal }) {
   socket ??= new LiveSocket(`${origin}/live`, Socket, {
     params: () => ({ _csrf_token: csrfToken }),
   });
+  // This LiveView is an island, so page-level history scroll restoration must stay disabled.
+  socket.maybeScroll = () => {};
   // LiveView 1.2 also claims document.body as a dead view. An embedded provider must not own the host.
   // This private hook is covered by the remount test and pinned to the mix.lock version.
   socket.joinDeadView = () => {};
