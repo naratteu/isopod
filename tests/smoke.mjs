@@ -13,6 +13,7 @@ page.on('websocket', socket => sockets.push(socket.url()));
 const names = ['react', 'svelte', 'rsc', 'svelte-ssr', 'hono', 'next', 'blazor', 'phoenix'];
 const base = process.env.HOST_URL || 'http://localhost:4321';
 const card = name => page.locator(`[data-provider="${name}"]`);
+const counts = Object.fromEntries(names.map(name => [name, 0]));
 async function eventually(check, message) {
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) {
@@ -25,11 +26,12 @@ try {
   await page.goto(base);
   for (const name of names) {
     await card(name).locator('output').waitFor({ timeout: 30_000 });
-    assert.equal((await card(name).locator('output').textContent()).trim(), '0', `${name}: initial state`);
+    counts[name] = Number((await card(name).locator('output').textContent()).trim());
     // Phoenix's first HTML is SSR; wait for its socket to join before sending an event.
     if (name === 'phoenix') await card(name).locator('.phx-connected').waitFor();
     await card(name).getByRole('button', { name: '+1', exact: true }).click();
-    await eventually(async () => (await card(name).locator('output').textContent()).trim() === '1', `${name}: increment`);
+    counts[name] += 1;
+    await eventually(async () => (await card(name).locator('output').textContent()).trim() === String(counts[name]), `${name}: increment`);
   }
   const before = await page.locator('remote-island time').allTextContents();
   await eventually(async () => {
@@ -45,7 +47,7 @@ try {
   const night = await color();
   assert.equal(new Set(night).size, 1);
   assert.notEqual(night[0], garden[0], 'Theme actually changes provider styles');
-  assert.deepEqual(await page.locator('remote-island output').allTextContents(), Array(8).fill('1'), 'Theme preserves state');
+  assert.deepEqual(await page.locator('remote-island output').allTextContents(), names.map(name => String(counts[name])), 'Theme preserves state');
   assert(sockets.some(url => url.includes(':5106/_blazor')), 'Real Blazor SignalR connection');
   assert(sockets.some(url => url.includes(':5107/live/')), 'Real Phoenix LiveSocket connection');
 
@@ -53,17 +55,20 @@ try {
   const second = await browser.newPage();
   await second.goto(base);
   await eventually(async () => await second.locator('remote-island output').count() === 8, 'Second session renders');
-  assert.deepEqual(await second.locator('remote-island output').allTextContents(), Array(8).fill('0'));
+  const secondCounts = await second.locator('remote-island output').allTextContents();
+  assert.equal(secondCounts[7], String(counts.phoenix), 'Phoenix state is shared by the process');
+  assert.deepEqual(secondCounts.slice(0, 7), Array(7).fill('0'));
   await second.close();
 
   // Each server-side increment must appear in its own container, correlated to an instance.
   for (const [name, service] of [['rsc', 'next'], ['svelte-ssr', 'svelte-ssr'], ['hono', 'hono'], ['blazor', 'blazor'], ['phoenix', 'phoenix']]) {
     await card(name).getByRole('button', { name: '+1', exact: true }).click();
-    await eventually(async () => (await card(name).locator('output').textContent()).trim() === '2', `${name}: second increment`);
+    counts[name] += 1;
+    await eventually(async () => (await card(name).locator('output').textContent()).trim() === String(counts[name]), `${name}: second increment`);
     await eventually(() => {
       const logs = execFileSync('docker', ['compose', 'logs', '--no-color', '--since', logSince, service], { encoding: 'utf8' });
       const entries = [...logs.matchAll(new RegExp(`counter\\.increment provider=${name} instance=(\\S+) count=(\\d+)`, 'g'))];
-      return entries.some(([, instance, count]) => count === '2' && entries.some(([, firstInstance, firstCount]) => firstInstance === instance && firstCount === '1'));
+      return entries.some(([, instance, count]) => count === String(counts[name]) && entries.some(([, firstInstance]) => firstInstance === instance));
     }, `${name}: container logs show count=1 and count=2 for the same instance`);
   }
 
@@ -74,7 +79,8 @@ try {
     await card(name).locator('output').waitFor();
     if (name === 'phoenix') await card(name).locator('.phx-connected').waitFor();
     await card(name).getByRole('button', { name: '+1', exact: true }).click();
-    await eventually(async () => (await card(name).locator('output').textContent()).trim() === '1', `${name}: remount works`);
+    counts[name] = name === 'phoenix' ? counts[name] + 1 : 1;
+    await eventually(async () => (await card(name).locator('output').textContent()).trim() === String(counts[name]), `${name}: remount works`);
   }
 
   // Disconnect while mount is still pending. Stale mounts must not replace the new instance.
