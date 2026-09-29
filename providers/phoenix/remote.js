@@ -12,6 +12,9 @@ export async function mount(element, { signal }) {
   const root = html.querySelector('[data-phx-session]');
   const csrf = html.querySelector('meta[name="csrf-token"]')?.content;
   if (!root || !csrf) throw new Error('Invalid LiveView bootstrap');
+  // The host page has no Phoenix document root; mark this island as the one main view
+  // so LiveView's join-error and navigation paths never dereference a missing main view.
+  root.setAttribute('data-phx-main', '');
   await disconnected;
   signal.throwIfAborted();
   element.append(root);
