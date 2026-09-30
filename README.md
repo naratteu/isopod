@@ -1,26 +1,37 @@
 # Isopod
 
-일곱 개의 독립 공급자가 내보내는 여덟 컴포넌트를 **정적 Astro 페이지의 같은 DOM**에 모으는 실증입니다. 스타일은 전부 호스트 CSS에 있으며 iframe, Shadow DOM, 도메인 JSON API를 사용하지 않습니다. 각 공급자가 자신의 런타임·상태·통신을 소유합니다.
+일곱 개의 독립 공급자가 내보내는 여덟 컴포넌트를 **두 종류의 정적 호스트**에 모으는 실증입니다. [Astro island 호스트](https://naratteu.github.io/isopod/)와 [순수 웹 컴포넌트 호스트](https://naratteu.github.io/isopod/web-components/)가 같은 공급자를 각각 조립합니다. 스타일은 전부 호스트 CSS에 있으며 iframe, Shadow DOM, 도메인 JSON API를 사용하지 않습니다. 각 공급자가 자신의 런타임·상태·통신을 소유합니다.
 
 ```sh
 docker compose up --build -d
-# http://localhost:4321
+# Astro: http://localhost:4321
+# Web Components: http://localhost:4322
 ```
 
 처음에는 Node/.NET/Elixir 이미지와 패키지를 받습니다. 이후 `docker compose ps`와 `docker compose logs phoenix` 등으로 상태를 확인할 수 있습니다. 종료는 `docker compose down`입니다. 포트는 로컬 머신에만 바인딩합니다.
 
 ## 방문자용 실행 순서
 
-방문자는 저장소를 받은 뒤 Compose만 실행하면 로컬 데모를 볼 수 있습니다.
+방문자는 저장소를 받은 뒤 Compose만 실행하면 두 로컬 데모를 볼 수 있습니다.
 
 ```sh
 git clone https://github.com/naratteu/isopod.git
 cd isopod
 docker compose up --build -d
-# http://localhost:4321
+# Astro: http://localhost:4321
+# Web Components: http://localhost:4322
 ```
 
-페이지의 `방문자용 연결 시작하기`에서 위 명령을 그대로 복사할 수도 있습니다. 컨테이너 로그는 `docker compose logs -f phoenix`처럼 확인합니다.
+페이지의 `로컬에서 바로 실행`에서 위 명령을 그대로 복사할 수도 있습니다. 컨테이너 로그는 `docker compose logs -f phoenix`처럼 확인합니다.
+
+## 두 호스트 PoC
+
+| 호스트 | 소스 | 로컬 | GitHub Pages | 조립 방식 |
+| --- | --- | --- | --- | --- |
+| Astro island | `host/` | [localhost:4321](http://localhost:4321) | [Astro 데모](https://naratteu.github.io/isopod/) | 커스텀 `addRenderer()`와 `client:only="isopod"` |
+| 표준 웹 컴포넌트 | `host-web/` | [localhost:4322](http://localhost:4322) | [Web Components 데모](https://naratteu.github.io/isopod/web-components/) | 정적 HTML, 브라우저 Custom Elements, CSS; Astro 빌드나 런타임 없음 |
+
+두 호스트는 각자 정적 사이트로 실행되며 동일한 일곱 공급자에 직접 연결합니다. `host-web/`의 HTML·CSS·JS는 별도 파일이므로 Astro를 설치하지 않아도 정적 서버에서 그대로 열 수 있습니다. 두 화면의 카드·스타일은 의도적으로 같아 조립 주체만 비교할 수 있습니다. GitHub Pages에서는 각 화면의 주소 설정에 동일한 공개 공급자 URL을 입력해야 합니다.
 
 ### Cloudflare Tunnel로 연결하기
 
@@ -81,14 +92,15 @@ RSC 로그는 `next` 컨테이너에서 `provider=rsc`로 표시됩니다. 브�
 ## 경계
 
 ```text
-nginx:4321 ── Astro가 빌드한 HTML / CSS / 작은 호스트 JS
+nginx:4321 ── Astro island 호스트
+nginx:4322 ── 순수 HTML + Custom Elements 호스트
                     │ 브라우저의 직접 import()
           ┌─────────┼──────────┬───────────┐
        Node 공급자들         Blazor       Phoenix
        HTML / React / Svelte  SignalR      LiveSocket
           └─────────┴──────────┴───────────┘
                     같은 문서의 Light DOM
-                    Astro의 전역 CSS
+                    각 호스트의 전역 CSS
 ```
 
 호스트는 URL과 아래 계약만 압니다. 업무 데이터의 구조나 HTTP/SSE/SignalR/LiveSocket은 호스트 코드에 없습니다.
@@ -101,7 +113,7 @@ export async function mount(element, { signal }) {
 }
 ```
 
-`host/remote-renderer/`는 Astro의 `addRenderer()`로 공급자를 등록하고 각 카드를 `client:only="isopod"` island로 만듭니다. Astro가 island의 클라이언트 모듈과 마운트 시점을 관리하고, 내부 `<remote-island>`는 공급자의 `mount(element, { signal })` 계약과 연결 해제를 담당합니다. 공급자 URL은 브라우저에서 바꿀 수 있고, 공급자 서버가 없어도 정적 호스트를 빌드할 수 있습니다. Astro `server:defer`는 런타임 Astro 서버가 필요하므로 GitHub Pages 호스트에는 사용하지 않습니다.
+`host/remote-renderer/`는 Astro의 `addRenderer()`로 공급자를 등록하고 각 카드를 `client:only="isopod"` island로 만듭니다. Astro가 island의 클라이언트 모듈과 마운트 시점을 관리하고, 내부 `<remote-island>`는 공급자의 `mount(element, { signal })` 계약과 연결 해제를 담당합니다. `host-web/`은 Astro 없이 같은 `<remote-island>` 계약을 직접 사용합니다. 공급자 URL은 두 화면에서 각각 바꿀 수 있습니다. Astro `server:defer`는 런타임 Astro 서버가 필요하므로 GitHub Pages 호스트에는 사용하지 않습니다.
 
 일반적인 호스트 개발은 `npm ci && npm run dev`로 가능합니다. Docker의 host와 포트가 겹치면 먼저 `docker compose stop host`를 실행합니다. 공급자는 계속 Compose에서 실행합니다.
 
@@ -129,6 +141,7 @@ Compose가 실행 중인 상태에서:
 npm ci
 npx playwright install chromium
 npm test
+HOST_URL=http://localhost:4322 HOST_KIND=web npm test
 ```
 
 실제 브라우저에서 여덟 카드 렌더링, 클릭, 시각 갱신, 공통 CSS, 테마 변경 후 상태 유지, 별도 브라우저 세션의 상태 독립성, 해제/재마운트, 비동기 마운트 취소, 모바일 가로 넘침을 검사합니다. Blazor/Phoenix WebSocket 연결과 서버 카드 다섯 개의 카운트 1·2가 각 컨테이너 로그에 기록되는지도 확인합니다. 스크린샷은 `test-results/`에 저장합니다.

@@ -27,6 +27,10 @@ RUN npm run build:host
 
 FROM nginx:1.29.1-alpine AS host
 COPY --from=host-build /app/host/dist /usr/share/nginx/html
+COPY host-web/ /usr/share/nginx/html/web-components/
+
+FROM nginx:1.29.1-alpine AS host-web
+COPY host-web/ /usr/share/nginx/html/
 
 FROM dependencies AS provider
 ARG PROVIDER

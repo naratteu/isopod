@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="프레임워크 없이 웹 컴포넌트로 조립한 원격 컴포넌트 정원.">
+    <title>Isopod — Web Components PoC</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+    <script src="./remote-island.js" defer></script>
+  </head>
+  <body>
+    <header class="masthead"><a href="./" aria-label="Isopod 홈">◉ ISOPOD</a><span>NATIVE WEB COMPONENTS / 002</span></header>
+    <main>
+      <section class="intro">
+        <p class="eyebrow">INDEPENDENT INSIDE. TOGETHER OUTSIDE.</p>
+        <h1>한 페이지,<br><em>여러 세계.</em></h1>
+        <div class="intro-bottom">
+          <p>프레임워크 없는 정적 HTML과 표준 웹 컴포넌트가<br>일곱 공급자의 여덟 컴포넌트를 한 DOM에 모읍니다.</p>
+          <fieldset class="themes">
+            <legend>같은 HTML, 다른 CSS</legend>
+            <label><input type="radio" name="theme" id="theme-garden" checked> Garden</label>
+            <label><input type="radio" name="theme" id="theme-paper"> Paper</label>
+            <label><input type="radio" name="theme" id="theme-night"> Night</label>
+          </fieldset>
+        </div>
+      </section>
+      <section class="quickstart" aria-label="로컬 실행 안내">
+        <div><p class="eyebrow">START HERE</p><h2>로컬에서 바로 실행</h2><p>터미널에 아래 명령을 붙여 넣고 <a href="http://localhost:4322">localhost:4322</a>를 여세요.</p></div>
+        <code>git clone https://github.com/naratteu/isopod.git &amp;&amp; cd isopod &amp;&amp; docker compose up --build -d</code>
+        <button type="button" data-copy-local>명령 복사</button><span data-quickstart-status role="status"></span>
+      </section>
+      <details class="connection-panel">
+        <summary>다른 기기에서 연결하기 (선택) <span>Cloudflare Tunnel 등의 공개 URL을 사용할 때만 엽니다 ↗</span></summary>
+        <form data-provider-config>
+          <p class="config-help">로컬 실행이 먼저입니다. 외부에서 보려는 경우에만 Cloudflare Tunnel을 실행하고 아래 명령을 복사하세요.</p>
+          <div class="config-actions"><button type="button" data-copy-cloudflare>Cloudflare 명령 복사</button></div>
+          <div class="config-grid" data-config-fields></div>
+          <div class="config-actions"><button type="submit">이 페이지에 적용</button><button type="button" data-clear-provider>초기화</button></div>
+          <textarea data-command-output readonly aria-label="복사할 명령"></textarea>
+          <p data-config-status role="status"></p>
+        </form>
+      </details>
+      <p class="scope-note"><b>LOCAL</b> 브라우저 상태 · <strong>GLOBAL</strong> 공급자 프로세스 상태</p>
+      <section class="collection" aria-label="컴포넌트 정원" data-collection></section>
+      <aside class="note"><span>직접 해보세요 ↗</span><p>숫자를 올리고 테마를 바꿔 보세요. 모습이 바뀌어도 상태와 서버 시각은 이어집니다. 연결을 해제하면 해당 컴포넌트만 멈춥니다.</p></aside>
+    </main>
+    <footer class="page-footer"><span>NATIVE HTML + CUSTOM ELEMENTS + CSS</span><span><a href="../">Astro PoC 보기 ↗</a></span></footer>
+    <noscript>컴포넌트 공급자에 연결하려면 JavaScript를 활성화해 주세요.</noscript>
+  </body>
+</html>

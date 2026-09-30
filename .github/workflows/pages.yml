@@ -1,4 +1,4 @@
-name: Deploy Astro host to GitHub Pages
+name: Deploy both static hosts to GitHub Pages
 
 on:
   push:
@@ -37,6 +37,8 @@ jobs:
           PUBLIC_PROVIDER_BLAZOR_URL: ${{ vars.PUBLIC_PROVIDER_BLAZOR_URL }}
           PUBLIC_PROVIDER_PHOENIX_URL: ${{ vars.PUBLIC_PROVIDER_PHOENIX_URL }}
         run: npm run build:host
+      - name: Include native Web Components host
+        run: cp -R host-web host/dist/web-components
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -25,6 +25,9 @@ services:
         PUBLIC_PROVIDER_BLAZOR_URL: ${PUBLIC_PROVIDER_BLAZOR_URL:-}
         PUBLIC_PROVIDER_PHOENIX_URL: ${PUBLIC_PROVIDER_PHOENIX_URL:-}
     ports: ["127.0.0.1:4321:80"]
+  host-web:
+    build: { context: ., target: host-web }
+    ports: ["127.0.0.1:4322:80"]
   react:
     <<: *node
     build: { context: ., target: provider, args: { PROVIDER: react } }

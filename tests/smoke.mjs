@@ -25,6 +25,7 @@ async function eventually(check, message) {
 }
 try {
   await page.goto(base);
+  assert.equal(await page.locator('astro-island').count(), process.env.HOST_KIND === 'web' ? 0 : 8, 'Expected host implementation');
   for (const name of names) {
     await card(name).locator('output').waitFor({ timeout: 30_000 });
     counts[name] = Number((await card(name).locator('output').textContent()).trim());
