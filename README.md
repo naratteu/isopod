@@ -101,7 +101,7 @@ export async function mount(element, { signal }) {
 }
 ```
 
-`host/src/components/RemoteIsland.astro`는 이 계약을 일반 custom element로 연결합니다. 새 컴포넌트 문법이 필요하지 않아 Astro `addRenderer()`는 만들지 않았습니다. 공급자 URL을 변경하려면 `host/src/pages/index.astro`의 목록을 수정하고 정적 호스트만 다시 빌드합니다. 공급자 서버가 없어도 호스트 빌드가 됩니다.
+`host/remote-renderer/`는 Astro의 `addRenderer()`로 공급자를 등록하고 각 카드를 `client:only="isopod"` island로 만듭니다. Astro가 island의 클라이언트 모듈과 마운트 시점을 관리하고, 내부 `<remote-island>`는 공급자의 `mount(element, { signal })` 계약과 연결 해제를 담당합니다. 공급자 URL은 브라우저에서 바꿀 수 있고, 공급자 서버가 없어도 정적 호스트를 빌드할 수 있습니다. Astro `server:defer`는 런타임 Astro 서버가 필요하므로 GitHub Pages 호스트에는 사용하지 않습니다.
 
 일반적인 호스트 개발은 `npm ci && npm run dev`로 가능합니다. Docker의 host와 포트가 겹치면 먼저 `docker compose stop host`를 실행합니다. 공급자는 계속 Compose에서 실행합니다.
 
